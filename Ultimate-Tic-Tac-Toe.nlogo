@@ -1,4 +1,10 @@
-globals [colorList shapeList numOfTurn]
+globals
+[
+  ; turn based
+  colorList shapeList numOfTurn
+  ; grid related
+  grids
+]
 
 ; set up the board
 to setup
@@ -37,13 +43,40 @@ to setup
     set i i + 1
   ]
 
+  ; kill the turtle used to draw lines
   ask turtle 0 [
     die
   ]
 
+  initializeGrid
+
+  ; initialize
   set colorList [red yellow]
   set shapeList ["x" "circle"]
   set numOfTurn 0
+end
+
+to initializeGrid
+  ; one list for each of 9 grids
+  set grids [ [[0][0][0]] [[0][0][0]] [[0][0][0]] ]
+  ; put patches in grids
+  ask patches
+  [
+    ; find row and col
+    let row int(pycor / 3)
+    let col int(pxcor / 3)
+    ; find list of grid correspond to this row
+    let rowGrid (item row grids)
+    ; find the grid correspond to the patch
+    let grid (item col rowGrid)
+    ; modify the grid
+    set grid (lput self grid)
+    ; modify the list of grid
+    set rowGrid (replace-item col rowGrid grid)
+    ; modify the entire thing
+    set grids (replace-item row grids rowGrid)
+  ]
+  print(grids)
 end
 
 to play
