@@ -8,7 +8,17 @@ globals
   gameEnded
 
   highLighted
+
+  placeableGrid
 ]
+
+; debug
+to debug
+  ask patches with [pxcor = round(mouse-xcor) and pycor = round(mouse-ycor)]
+  [
+    print(any? turtles-here = false and pcolor != gray)
+  ]
+end
 
 ; set up the board
 to setup
@@ -63,6 +73,11 @@ to setup
   set sizeScalar 0.75
   set gameEnded false
   set highLighted 0
+
+  ask patches
+  [
+    set pcolor black
+  ]
 end
 
 to initializeGrid
@@ -117,36 +132,42 @@ to play
   ; if game didn't end yet
   if not gameEnded
   [
+    ; find x y
     let x (round mouse-xcor)
     let y (round mouse-ycor)
 
+    ; clear last highlighted if needed
     if (highLighted != 0)
     [
       ask highlighted
       [
-        if (not (pxcor = x and pycor = y))
-      [
-        set pcolor black
-      ]
+        if (not (placeable x y))
+        [
+          set pcolor black
+        ]
       ]
     ]
 
     ; highlight
-    ask patches with [pxcor = x and pycor = y]
+    ask patches
     [
-      set pcolor cyan
-      set highLighted self
+      if (placeable x y)
+      [
+        set pcolor cyan
+        set highLighted self
+      ]
     ]
 
     ; when clicked
     if mouse-down?
     [
       ; find the patch the mouse is on
-      ask patches with [pxcor = x and pycor = y]
-      	  [
+      ask patches
+  	  [
         ; it has to be an empty square
-        if any? turtles-here = false
+        if (placeable x y)
         [
+          set highlighted 0
           ; see whose turn it is
           sprout 1
           [
@@ -159,6 +180,20 @@ to play
           set numOfTurn numOfTurn + 1
           wait 0.1
         ]
+      ]
+
+      ; figure out new placeableGrid
+      let row (x - (int(y / 3) * 3 + 1)) + 1
+      let col (x - (int(x / 3) * 3 + 1))  1
+      print(row)
+      print(col)
+      set placeableGrid (item col (item row grids))
+      ; color the patches accordingly
+      ask patches
+      [
+        ifelse (member? self placeableGrid)
+        [set pcolor black]
+        [set pcolor gray]
       ]
     ]
   ]
@@ -256,6 +291,15 @@ to finalCheck [cx cy]
       output-print (sentence (item 1 colorNameList) "WON!!!")
     ]
   ]
+end
+
+
+;;;;;;;;;; Helper Methods
+
+; check if placeable
+to-report placeable [x y]
+  ; correct coordinate, empty square, and in correct grid by color
+  report pxcor = x and pycor = y and any? turtles-here = false and pcolor != gray
 end
 
 ; check if it is a connected len ahead
