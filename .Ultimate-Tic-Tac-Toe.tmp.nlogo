@@ -57,30 +57,47 @@ to setup
 end
 
 to initializeGrid
-  ; one list for each of 9 grids
-  set grids [ [[0][0][0]] [[0][0][0]] [[0][0][0]] ]
-  ; put patches in grids
-  ask patch 1 1
+  ; one list for each of 9 tempGrids
+  let tempGrids [ [[0][0][0]] [[0][0][0]] [[0][0][0]] ]
+  ; put patches in tempGrids
+  ask patches
   [
-    print(grids)
     ; find row and col
     let row int(pycor / 3)
     let col int(pxcor / 3)
     ; find list of grid correspond to this row
-    let rowGrid (item row grids)
+    let rowGrid (item row tempGrids)
     ; find the grid correspond to the patch
-    let grid (item col rowGrid)
-    print(grid)
+    let curGrid (item col rowGrid)
     ; modify the grid
-    set grid (lput self grid)
+    set curGrid (lput self curGrid)
     ; modify the list of grid
-
-    set rowGrid (replace-item col rowGrid grid)
-    print(rowGrid)
+    set rowGrid (replace-item col rowGrid curGrid)
     ; modify the entire thing
-    set grids (replace-item row grids rowGrid)
+    set tempGrids (replace-item row tempGrids rowGrid)
   ]
-  print(grids)
+  set grids []
+  ; remove 0 and put together
+  foreach tempGrids
+  [
+    rowGrid ->
+    let finalRowGrid []
+    foreach rowGrid
+    [
+      ; put together each row
+      curGrid -> set curGrid remove-item 0 curGrid
+      set finalRowGrid (lput curGrid finalRowGrid)
+    ]
+    ; put everything together
+    set grids (lput finalRowGrid grids)
+  ]
+
+  foreach grids
+  [
+    rowGrid ->
+
+    foreach rowGrid
+  ]
 end
 
 to play
