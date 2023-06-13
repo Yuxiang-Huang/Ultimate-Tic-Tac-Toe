@@ -3,7 +3,7 @@ globals
   ; turn based
   colorList colorNameList shapeList numOfTurn
 
-  grids gridToKill
+  grids gridToKill gridsEnded
   sizeScalar
   gameEnded
 
@@ -185,13 +185,26 @@ to play
       ; figure out new placeableGrid
       let row (y - (int(y / 3) * 3 + 1)) + 1
       let col (x - (int(x / 3) * 3 + 1)) + 1
-      print(row)
-      print(col)
-      set placeableGrid (item col (item row grids))
+
+      ; check the patch in the middle of the grid to go
+      ask patches with [pxcor = (col * 3 + 1) and pycor = (row * 3 + 1)]
+      [
+        ; see if the grid ended
+        ifelse (any? turtles-here and first [size] of turtles-here = (3 * sizeScalar))
+        [
+          ; anywhere if the grid is filled
+          set placeableGrid 0
+        ]
+        [
+          ; otherwise in the responding corner
+          set placeableGrid (item col (item row grids))
+        ]
+      ]
+
       ; color the patches accordingly
       ask patches
       [
-        ifelse (member? self placeableGrid)
+        ifelse (placeableGrid = 0 or member? self placeableGrid)
         [set pcolor black]
         [set pcolor gray]
       ]
@@ -293,8 +306,7 @@ to finalCheck [cx cy]
   ]
 end
 
-
-;;;;;;;;;; Helper Methods
+; Helper Methods
 
 ; check if placeable
 to-report placeable [x y]
