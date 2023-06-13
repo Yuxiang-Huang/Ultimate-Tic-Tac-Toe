@@ -3,22 +3,15 @@ globals
   ; turn based
   colorList colorNameList shapeList numOfTurn
 
-  grids gridToKill gridsEnded
-  sizeScalar
-  gameEnded
+  ; grids
+  grids gridToKill placeableGrid
 
+  sizeScalar sizeFactor
+  gameEnded
   highLighted
 
-  placeableGrid
+  moves moveIndex
 ]
-
-; debug
-to debug
-  ask patches with [pxcor = round(mouse-xcor) and pycor = round(mouse-ycor)]
-  [
-    print(any? turtles-here = false and pcolor != gray)
-  ]
-end
 
 ; set up the board
 to setup
@@ -68,12 +61,20 @@ to setup
   set colorList [red yellow]
   set colorNameList ["RED" "YELLOW"]
   set shapeList ["x" "circle"]
+
   set numOfTurn 0
   set gridToKill 0
+
   set sizeScalar 0.75
+  set sizeFactor 4
+
   set gameEnded false
   set highLighted 0
 
+  set moves []
+  set moveindex -1
+
+  ; all black to start
   ask patches
   [
     set pcolor black
@@ -161,6 +162,9 @@ to play
     ; when clicked
     if mouse-down?
     [
+      set moves (lput (list x y) moves)
+      set moveIndex moveIndex + 1
+
       ; find the patch the mouse is on
       ask patches
   	  [
@@ -190,7 +194,7 @@ to play
       ask patches with [pxcor = (col * 3 + 1) and pycor = (row * 3 + 1)]
       [
         ; see if the grid ended
-        ifelse (any? turtles-here and first [size] of turtles-here = (3 * sizeScalar))
+        ifelse (any? turtles-here and first [size] of turtles-here = (sizeFactor * sizeScalar))
         [
           ; anywhere if the grid is filled
           set placeableGrid 0
@@ -258,7 +262,7 @@ to check [x y]
       [
         set shape (item (numOfTurn mod 2) shapeList)
         set color (item (numOfTurn mod 2) colorList)
-        set size sizeScalar * 3
+        set size sizeFactor * sizeScalar
       ]
     ]
 
@@ -304,6 +308,39 @@ to finalCheck [cx cy]
       output-print (sentence (item 1 colorNameList) "WON!!!")
     ]
   ]
+end
+
+; undo and redo
+to undo
+  if (moveIndex >= 0)
+  [
+    set numOfTurn numOfTurn - 1
+
+    ; get the move
+    let lastMove (item moveIndex moves)
+    set moves (remove-item moveIndex moves)
+    set moveIndex moveIndex - 1
+    let x first lastMove
+    let y last lastMove
+
+    ; kill the turtle and set the correct grid
+    ask turtles with [xcor = x and ycor = y] [die]
+    set placeableGrid (getGrid x y)
+
+    ; color the patches accordingly
+    set highlighted 0
+    ask patches
+    [
+      ; edge case of 0
+      ifelse (moveIndex = -1 or placeableGrid = 0 or member? self placeableGrid)
+      [set pcolor black]
+      [set pcolor gray]
+    ]
+  ]
+end
+
+to redo
+
 end
 
 ; Helper Methods
@@ -353,8 +390,8 @@ end
 
 ; get the grid for this coordinate
 to-report getGrid [x y]
-  let row int(pycor / 3)
-  let col int(pxcor / 3)
+  let row int(y / 3)
+  let col int(x / 3)
   report (item col (item row grids))
 end
 @#$#@#$#@
@@ -425,6 +462,40 @@ OUTPUT
 155
 198
 13
+
+BUTTON
+20
+234
+84
+267
+NIL
+undo
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+96
+235
+159
+268
+NIL
+redo
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
 
 @#$#@#$#@
 ## WHAT IS IT?
