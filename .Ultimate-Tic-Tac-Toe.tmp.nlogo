@@ -3,7 +3,7 @@ globals
   ; turn based
   colorList shapeList numOfTurn
   ; grid related
-  grids
+  grids gridToKill
 ]
 
 ; set up the board
@@ -54,6 +54,7 @@ to setup
   set colorList [red yellow]
   set shapeList ["x" "circle"]
   set numOfTurn 0
+  set gridToKill 0
 end
 
 to initializeGrid
@@ -139,17 +140,42 @@ to check [x y]
   ask turtles with [xcor = x and ycor = y]
   [
     set heading 0
-    	repeat 4
+    repeat 4
     [
       checkhelper 1 myGrid
       set heading heading + 90
     ]
-    	set heading 45
-    	repeat 4
+    set heading 45
+    repeat 4
     [
-      	checkhelper sqrt(2) myGrid
+      checkhelper sqrt(2) myGrid
       set heading heading + 90
     ]
+  ]
+
+  if (gridToKill != 0)
+  [
+    ; kill all turtles in the won grid
+    foreach gridToKill
+    [
+      p ->
+      ask p [
+        	ask turtles-here [die]
+      ]
+    ]
+
+    ; spawn a large shape here
+    ask patch (int(y / 3)  - 1) (int(x / 3) - 1)
+    [
+      sprout 1
+      [
+        set shape (item (numOfTurn mod 2) shapeList)
+        set color (item (numOfTurn mod 2) colorList)
+        set size 0.75 * 3
+      ]
+    ]
+
+    set gridToKill 0
   ]
 end
 
@@ -189,11 +215,9 @@ to checkhelper [len myGrid]
   ; won the grid
   if flag
   [
-
+    set gridToKill myGrid
   ]
 end
-
-
 
 ; get the grid for this coordinate
 to-report getGrid [x y]
