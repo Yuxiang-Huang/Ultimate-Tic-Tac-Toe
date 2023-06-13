@@ -1,12 +1,17 @@
+globals [firstColor firstShape secondColor secondShape numOfTurn]
+
 ; set up the board
 to setup
   ca
   crt 1
   ; draw 9 by 9 grid
   let i 0
-  while [i < 8][
-    ask turtle 0 [
-      ifelse ((i - 2) mod 3 = 0)[
+  while [i < 8]
+  [
+    ask turtle 0
+    [
+      ifelse ((i - 2) mod 3 = 0)
+      [
         ; the thicker white lines
         set color white
         set pen-size 3
@@ -14,7 +19,7 @@ to setup
       [
         ; the thinner blue lines
         set color blue
-        set pen-size
+        set pen-size 2
       ]
       ; horizontal lines
       pu
@@ -35,10 +40,45 @@ to setup
   ask turtle 0 [
     die
   ]
+
+  set firstColor red
+  set firstShape "x"
+  set secondColor yellow
+  set secondShape "circ
+  set numOfTurn 0
 end
 
 to play
-
+  ; when clicked
+  if mouse-down?
+  [
+    ; find the patch the mouse is on
+    ask patches with [pxcor = round mouse-xcor and pycor = round mouse-ycor]
+	  [
+      ; it has to be an empty square
+      if any? turtles-here = false
+      [
+        ; see whose turn it is
+        ifelse numOfTurn mod 2 = 0 [
+          sprout 1 [
+            set color firstColor
+            set shape firstShape
+            set size 0.75
+          ]
+        ]
+        [
+          sprout 1
+          [
+            set color secondColor
+            set shape secondShape
+            set size 0.75
+          ]
+        ]
+        set numOfTurn numOfTurn + 1
+        wait 0.1
+      ]
+    ]
+  ]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
