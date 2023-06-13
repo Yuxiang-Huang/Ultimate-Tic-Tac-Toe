@@ -320,6 +320,15 @@ to undo
     ask turtles with [xcor = x and ycor = y] [die]
     set placeableGrid (getGrid x y)
 
+    ; edge case of ending grid
+    let cxy (getCXY x y)
+
+    ask turtles with [xcor = first cxy and ycor = last cxy]
+    [
+      if (size = sizeFactor * sizeScalar)
+      [die]
+    ]
+
     ; color the patches accordingly
     set highlighted 0
     ask patches
@@ -333,7 +342,6 @@ to undo
 end
 
 to redo
-
   set moveIndex moveIndex + 1
   let nextMove (item moveIndex moves)
   spawn (first nextMove) (last nextMove)
@@ -389,6 +397,13 @@ to-report getGrid [x y]
   let row int(y / 3)
   let col int(x / 3)
   report (item col (item row grids))
+end
+
+; get the coordinates of the center of the grid the given coordinate belong to
+to-report getCXY [x y]
+  let cx (int(x / 3) * 3 + 1)
+  let cy (int(y / 3) * 3 + 1)
+  report (list cx cy)
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
