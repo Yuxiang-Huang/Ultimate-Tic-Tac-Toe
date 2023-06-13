@@ -1,9 +1,11 @@
 globals
 [
   ; turn based
-  colorList shapeList numOfTurn
-  ; grid related
+  colorList colorNameList shapeList numOfTurn
+
   grids gridToKill
+  sizeScalar
+  gameEnded
 ]
 
 ; set up the board
@@ -52,9 +54,12 @@ to setup
 
   ; initialize
   set colorList [red yellow]
+  set colorNameList ["RED" "YELLOW"]
   set shapeList ["x" "circle"]
   set numOfTurn 0
   set gridToKill 0
+  set sizeScalar 0.75
+  set gameEnded false
 end
 
 to initializeGrid
@@ -106,28 +111,32 @@ to initializeGrid
 end
 
 to play
-  ; when clicked
-  if mouse-down?
+  ; if game didn't end yet
+  if not gameEnded
   [
-    let x (round mouse-xcor)
-    let y (round mouse-ycor)
-    ; find the patch the mouse is on
-    ask patches with [pxcor = x and pycor = y]
-	  [
-      ; it has to be an empty square
-      if any? turtles-here = false
-      [
-        ; see whose turn it is
-        sprout 1
+    ; when clicked
+    if mouse-down?
+    [
+      let x (round mouse-xcor)
+      let y (round mouse-ycor)
+      ; find the patch the mouse is on
+      ask patches with [pxcor = x and pycor = y]
+      	  [
+        ; it has to be an empty square
+        if any? turtles-here = false
         [
-          set shape (item (numOfTurn mod 2) shapeList)
-          set color (item (numOfTurn mod 2) colorList)
-          set size 0.75
+          ; see whose turn it is
+          sprout 1
+          [
+            set shape (item (numOfTurn mod 2) shapeList)
+            set color (item (numOfTurn mod 2) colorList)
+            set size sizeScalar
+          ]
+          ; check and increment
+          check x y
+          set numOfTurn numOfTurn + 1
+          wait 0.1
         ]
-        ; check and increment
-        check x y
-        set numOfTurn numOfTurn + 1
-        wait 0.1
       ]
     ]
   ]
@@ -142,13 +151,19 @@ to check [x y]
     set heading 0
     repeat 4
     [
-      checkhelper 1 myGrid
+      if (checkhelper 1 myGrid) and (checkhelper 2 myGrid)
+      [
+        set gridToKill myGrid
+      ]
       set heading heading + 90
     ]
     set heading 45
     repeat 4
     [
-      checkhelper sqrt(2) myGrid
+      if (checkhelper sqrt(2) myGrid) and (checkhelper (2 * sqrt(2)) myGrid)
+      [
+        set gridToKill myGrid
+      ]
       set heading heading + 90
     ]
   ]
@@ -165,22 +180,65 @@ to check [x y]
     ]
 
     ; spawn a large shape here
-    ask patch (int(y / 3)  - 1) (int(x / 3) - 1)
+    let cx (int(x / 3) * 3 + 1)
+    let cy (int(y / 3) * 3 + 1)
+    ask patch cx cy
     [
       sprout 1
       [
         set shape (item (numOfTurn mod 2) shapeList)
         set color (item (numOfTurn mod 2) colorList)
-        set size 0.75 * 3
+        set size sizeScalar * 3
       ]
     ]
 
     set gridToKill 0
+
+    ; check for final winner
+    finalCheck cx cy
   ]
 end
 
-to checkhelper [len myGrid]
-  let flag false
+to finalCheck [cx cy]
+  ; check all directions
+  ask turtles with [xcor = cx and ycor = cy]
+  [
+    set heading 0
+    repeat 4
+    [
+      if (finalCheckhelper 3) and (finalCheckhelper 6)
+      [
+        set gameEnded true
+      ]
+      set heading heading + 90
+    ]
+    set heading 45
+    repeat 4
+    [
+      if (finalCheckhelper (3 * sqrt(2))) and (finalCheckhelper (6 * sqrt(2)))
+      [
+        set gameEnded true
+      ]
+      set heading heading + 90
+    ]
+  ]
+
+
+  ; announce winner
+  if (gameEnded)
+  [
+    ifelse [color] of turtles with [xcor = cx and ycor = cy] = (item 0 colorList)
+    [
+      output-print (sentence (item 0 colorNameList) "WON!!!")
+    ]
+    [
+      output-print (sentence (item 1 colorNameList) "WON!!!")
+    ]
+  ]
+end
+
+; check if it is a connected len ahead
+to-report checkhelper [len myGrid]
   ; first checks if there are 2 turtles in a row,
   if any? turtles-on (patch-ahead len)
   [
@@ -190,33 +248,30 @@ to checkhelper [len myGrid]
       ; check if these 2 turtles are the same color
       if first [color] of (turtles-on patch-ahead len) = [color] of self
       [
-        set flag true
+        report true
       ]
     ]
   ]
+  report false
+end
 
-  ; 2 is the precondition to check for 3
-  if flag
+; check if it is a connected len ahead
+to-report finalCheckHelper [len]
+  ; first checks if there are 2 turtles in a row,
+  if any? turtles-on (patch-ahead len)
   [
-    set flag false
-    ; same procedure to check for 3 turtles
-    if any? turtles-on patch-ahead (2 * len)
+    ; check if these 2 turtles are the same size
+    if first [size] of (turtles-on patch-ahead len) = [size] of self
     [
-      if member? patch-ahead( 2 * len) myGrid
+      ; check if these 2 turtles are the same color
+      if first [color] of (turtles-on patch-ahead len) = [color] of self
       [
-        if first [color] of (turtles-on patch-ahead (2 * len)) = [color] of self
-        [
-          set flag true
-        ]
+        report true
       ]
     ]
-  ]
 
-  ; won the grid
-  if flag
-  [
-    set gridToKill myGrid
   ]
+  report false
 end
 
 ; get the grid for this coordinate
@@ -286,6 +341,13 @@ NIL
 NIL
 NIL
 1
+
+OUTPUT
+15
+144
+155
+198
+13
 
 @#$#@#$#@
 ## WHAT IS IT?
