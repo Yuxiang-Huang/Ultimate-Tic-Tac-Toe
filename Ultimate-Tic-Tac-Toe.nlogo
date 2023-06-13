@@ -2,29 +2,36 @@
 to setup
   ca
   crt 1
-  ask turtle 0 [
-    set color blue
-    set pen-size 3
-  ]
+  ; draw 9 by 9 grid
   let i 0
-  ; 8 small blue lines
-  while [i < 9][
+  while [i < 8][
     ask turtle 0 [
+      ifelse ((i - 2) mod 3 = 0)[
+        ; the thicker white lines
+        set color white
+        set pen-size 3
+      ]
+      [
+        ; the thinner blue lines
+        set color blue
+        set pen-size 2
+      ]
       ; horizontal lines
       pu
-      setxy 0 (i - 0.5)
+      setxy 0 (i + 0.5)
       set heading 90
       pd
       fd 9
       ; vertical lines
       pu
-      setxy (i - 0.5) 0
+      setxy (i + 0.5) 0
       set heading 0
       pd
       fd 9
     ]
     set i i + 1
   ]
+
   ask turtle 0 [
     die
   ]
