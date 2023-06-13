@@ -1,4 +1,4 @@
-globals [firstColor firstShape secondColor secondShape numOfTurn]
+globals [colorList shapeList numOfTurn]
 
 ; set up the board
 to setup
@@ -41,10 +41,8 @@ to setup
     die
   ]
 
-  set firstColor red
-  set firstShape "x"
-  set secondColor yellow
-  set secondShape "circ
+  set colorList [red yellow]
+  set shapeList ["x" "circle"]
   set numOfTurn 0
 end
 
@@ -59,20 +57,11 @@ to play
       if any? turtles-here = false
       [
         ; see whose turn it is
-        ifelse numOfTurn mod 2 = 0 [
-          sprout 1 [
-            set color firstColor
-            set shape firstShape
-            set size 0.75
-          ]
-        ]
+        sprout 1
         [
-          sprout 1
-          [
-            set color secondColor
-            set shape secondShape
-            set size 0.75
-          ]
+          set shape ishapeList[numOfTurn mod 2]
+          set color colorList[numOfTurn mod 2]
+          set size 0.75
         ]
         set numOfTurn numOfTurn + 1
         wait 0.1
