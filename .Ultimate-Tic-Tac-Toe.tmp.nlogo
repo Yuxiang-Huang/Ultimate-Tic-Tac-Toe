@@ -4,7 +4,7 @@ globals
   colorList colorNameList shapeList numOfTurn
 
   ; grids
-  grids gridToKill placeableGrid
+  grids winGrid placeableGrid
 
   sizeScalar sizeFactor
   gameEnded
@@ -63,7 +63,7 @@ to setup
   set shapeList ["x" "circle"]
 
   set numOfTurn 0
-  set gridToKill 0
+  set winGrid 0
 
   set sizeScalar 0.75
   set sizeFactor 4
@@ -164,55 +164,58 @@ to play
     [
       set moves (lput (list x y) moves)
       set moveIndex moveIndex + 1
-
-      ; find the patch the mouse is on
-      ask patches
-  	  [
-        ; it has to be an empty square
-        if (placeable x y)
-        [
-          set highlighted 0
-          ; see whose turn it is
-          sprout 1
-          [
-            set shape (item (numOfTurn mod 2) shapeList)
-            set color (item (numOfTurn mod 2) colorList)
-            set size sizeScalar
-          ]
-          ; check and increment
-          check x y
-          set numOfTurn numOfTurn + 1
-          wait 0.1
-        ]
-      ]
-
-      ; figure out new placeableGrid
-      let row (y - (int(y / 3) * 3 + 1)) + 1
-      let col (x - (int(x / 3) * 3 + 1)) + 1
-
-      ; check the patch in the middle of the grid to go
-      ask patches with [pxcor = (col * 3 + 1) and pycor = (row * 3 + 1)]
-      [
-        ; see if the grid ended
-        ifelse (any? turtles-here and first [size] of turtles-here = (sizeFactor * sizeScalar))
-        [
-          ; anywhere if the grid is filled
-          set placeableGrid 0
-        ]
-        [
-          ; otherwise in the responding corner
-          set placeableGrid (item col (item row grids))
-        ]
-      ]
-
-      ; color the patches accordingly
-      ask patches
-      [
-        ifelse (placeableGrid = 0 or member? self placeableGrid)
-        [set pcolor black]
-        [set pcolor gray]
-      ]
+      spawn x y
     ]
+  ]
+end
+
+to spawn [x y]
+  ; find the patch the mouse is on
+  ask patches
+	  [
+    ; it has to be an empty square
+    if (placeable x y)
+    [
+      set highlighted 0
+      ; see whose turn it is
+      sprout 1
+      [
+        set shape (item (numOfTurn mod 2) shapeList)
+        set color (item (numOfTurn mod 2) colorList)
+        set size sizeScalar
+      ]
+      ; check and increment
+      check x y
+      set numOfTurn numOfTurn + 1
+      wait 0.1
+    ]
+  ]
+
+  ; figure out new placeableGrid
+  let row (y - (int(y / 3) * 3 + 1)) + 1
+  let col (x - (int(x / 3) * 3 + 1)) + 1
+
+  ; check the patch in the middle of the grid to go
+  ask patches with [pxcor = (col * 3 + 1) and pycor = (row * 3 + 1)]
+  [
+    ; see if the grid ended
+    ifelse (any? turtles-here and first [size] of turtles-here = (sizeFactor * sizeScalar))
+    [
+      ; anywhere if the grid is filled
+      set placeableGrid 0
+    ]
+    [
+      ; otherwise in the responding corner
+      set placeableGrid (item col (item row grids))
+    ]
+  ]
+
+  ; color the patches accordingly
+  ask patches
+  [
+    ifelse (placeableGrid = 0 or member? self placeableGrid)
+    [set pcolor black]
+    [set pcolor gray]
   ]
 end
 
@@ -227,7 +230,7 @@ to check [x y]
     [
       if (checkhelper 1 myGrid) and (checkhelper 2 myGrid)
       [
-        set gridToKill myGrid
+        set winGrid myGrid
       ]
       set heading heading + 90
     ]
@@ -236,23 +239,14 @@ to check [x y]
     [
       if (checkhelper sqrt(2) myGrid) and (checkhelper (2 * sqrt(2)) myGrid)
       [
-        set gridToKill myGrid
+        set winGrid myGrid
       ]
       set heading heading + 90
     ]
   ]
 
-  if (gridToKill != 0)
+  if (winGrid != 0)
   [
-    ; kill all turtles in the won grid
-    foreach gridToKill
-    [
-      p ->
-      ask p [
-        	ask turtles-here [die]
-      ]
-    ]
-
     ; spawn a large shape here
     let cx (int(x / 3) * 3 + 1)
     let cy (int(y / 3) * 3 + 1)
@@ -266,7 +260,7 @@ to check [x y]
       ]
     ]
 
-    set gridToKill 0
+    set winGrid 0
 
     ; check for final winner
     finalCheck cx cy
@@ -318,21 +312,20 @@ to undo
 
     ; get the move
     let lastMove (item moveIndex moves)
-    set moves (remove-item moveIndex moves)
     set moveIndex moveIndex - 1
     let x first lastMove
     let y last lastMove
-
 
     ; kill the turtle and set the correct grid
     ask turtles with [xcor = x and ycor = y] [die]
     set placeableGrid (getGrid x y)
 
     ; color the patches accordingly
-     set highlighted 0
+    set highlighted 0
     ask patches
     [
-      ifelse (placeableGrid = 0 or member? self placeableGrid)
+      ; edge case of 0
+      ifelse (moveIndex = -1 or placeableGrid = 0 or member? self placeableGrid)
       [set pcolor black]
       [set pcolor gray]
     ]
@@ -341,6 +334,9 @@ end
 
 to redo
 
+  set moveIndex moveIndex + 1
+  let nextMove (item moveIndex moves)
+  spawn (first nextMove) (last nextMove)
 end
 
 ; Helper Methods
