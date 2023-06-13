@@ -6,6 +6,8 @@ globals
   grids gridToKill
   sizeScalar
   gameEnded
+
+  highLighted
 ]
 
 ; set up the board
@@ -60,6 +62,7 @@ to setup
   set gridToKill 0
   set sizeScalar 0.75
   set gameEnded false
+  set highLighted 0
 end
 
 to initializeGrid
@@ -114,11 +117,30 @@ to play
   ; if game didn't end yet
   if not gameEnded
   [
+    let x (round mouse-xcor)
+    let y (round mouse-ycor)
+
+    if (highLighted != 0)
+    [
+      ask highlighted
+      [
+        if (not (pxcor = x and pycor = y and any? turtles-here = false))
+        [
+          set pcolor black
+        ]
+      ]
+    ]
+
+    ; highlight
+    ask patches with [pxcor = x and pycor = y and (any? turtles-here = false)]
+    [
+      set pcolor cyan
+      set highLighted self
+    ]
+
     ; when clicked
     if mouse-down?
     [
-      let x (round mouse-xcor)
-      let y (round mouse-ycor)
       ; find the patch the mouse is on
       ask patches with [pxcor = x and pycor = y]
       	  [
