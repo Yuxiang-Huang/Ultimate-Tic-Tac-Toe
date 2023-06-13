@@ -149,6 +149,8 @@ to play
       ]
     ]
 
+    set highLighted 0
+
     ; highlight
     ask patches
     [
@@ -160,8 +162,13 @@ to play
     ]
 
     ; when clicked
-    if mouse-down?
+    if mouse-down? and highLighted != 0
     [
+      ; need to clear
+      while [moveIndex != (length moves) - 1]
+      [
+        set moves remove-item ((length moves) - 1) moves
+      ]
       set moves (lput (list x y) moves)
       set moveIndex moveIndex + 1
       spawn x y
@@ -294,6 +301,7 @@ to finalCheck [cx cy]
   ; announce winner
   if (gameEnded)
   [
+    ; using color to determine text
     ifelse first [color] of turtles with [xcor = cx and ycor = cy] = (item 0 colorList)
     [
       output-print (sentence (item 0 colorNameList) "WON!!!")
@@ -306,11 +314,12 @@ end
 
 ; undo and redo
 to undo
-  if (moveIndex >= 0)
+  ; check for invalid case
+  ifelse (moveIndex >= 0)
   [
     set numOfTurn numOfTurn - 1
 
-    ; get the move
+    ; get the move by going back in moves list
     let lastMove (item moveIndex moves)
     set moveIndex moveIndex - 1
     let x first lastMove
@@ -338,12 +347,23 @@ to undo
       [set pcolor gray]
     ]
   ]
+  [
+    output-print ("Invalid")
+  ]
 end
 
 to redo
-  set moveIndex moveIndex + 1
-  let nextMove (item moveIndex moves)
-  spawn (first nextMove) (last nextMove)
+  ; check for invalid case
+  ifelse moveIndex < (length moves - 1)
+  [
+    ; advance through the moves list
+    set moveIndex moveIndex + 1
+    let nextMove (item moveIndex moves)
+    spawn (first nextMove) (last nextMove)
+  ]
+  [
+    output-print ("Invalid")
+  ]
 end
 
 ; Helper Methods
