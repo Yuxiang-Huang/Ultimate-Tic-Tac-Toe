@@ -76,6 +76,7 @@ to initializeGrid
     ; modify the entire thing
     set tempGrids (replace-item row tempGrids rowGrid)
   ]
+  ; reset grids
   set grids []
   ; remove 0 and put together
   foreach tempGrids
@@ -92,22 +93,25 @@ to initializeGrid
     set grids (lput finalRowGrid grids)
   ]
 
-  foreach grids
-  [
-    rowGrid ->
-    foreach rowGrid
-    [
-      curGrid -> print(curGrid)
-    ]
-  ]
+  ; print to check
+;  foreach grids
+;  [
+;    rowGrid ->
+;    foreach rowGrid
+;    [
+;      curGrid -> print(curGrid)
+;    ]
+;  ]
 end
 
 to play
   ; when clicked
   if mouse-down?
   [
+    let x (round mouse-xcor)
+    let y (round mouse-ycor)
     ; find the patch the mouse is on
-    ask patches with [pxcor = round mouse-xcor and pycor = round mouse-ycor]
+    ask patches with [pxcor = x and pycor = y]
 	  [
       ; it has to be an empty square
       if any? turtles-here = false
@@ -119,11 +123,83 @@ to play
           set color (item (numOfTurn mod 2) colorList)
           set size 0.75
         ]
+        ; check and increment
+        check x y
         set numOfTurn numOfTurn + 1
         wait 0.1
       ]
     ]
   ]
+end
+
+to check [x y]
+  ; get my grid
+  let myGrid getGrid x y
+  ; check all directions
+  ask turtles with [xcor = x and ycor = y]
+  [
+    set heading 0
+    	repeat 4
+    [
+      checkhelper 1 myGrid
+      set heading heading + 90
+    ]
+    	set heading 45
+    	repeat 4
+    [
+      	checkhelper sqrt(2) myGrid
+      set heading heading + 90
+    ]
+  ]
+end
+
+to checkhelper [len myGrid]
+  let flag false
+  ; first checks if there are 2 turtles in a row,
+  if any? turtles-on (patch-ahead len)
+  [
+    ; check if 2 turtles are in the same smaller grid.
+    if member? (patch-ahead len) myGrid
+    [
+      ; check if these 2 turtles are the same color
+      if first [color] of (turtles-on patch-ahead len) = [color] of self
+      [
+        set flag true
+      ]
+    ]
+  ]
+
+  ; 2 is the precondition to check for 3
+  if flag
+  [
+    set flag false
+    ; same procedure to check for 3 turtles
+    if any? turtles-on patch-ahead (2 * len)
+    [
+      if member? patch-ahead( 2 * len) myGrid
+      [
+        if first [color] of (turtles-on patch-ahead (2 * len)) = [color] of self
+        [
+          set flag true
+        ]
+      ]
+    ]
+  ]
+
+  ; won the grid
+  if flag
+  [
+    set color white
+  ]
+end
+
+
+
+; get the grid for this coordinate
+to-report getGrid [x y]
+  let row int(pycor / 3)
+  let col int(pxcor / 3)
+  report (item col (item row grids))
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
