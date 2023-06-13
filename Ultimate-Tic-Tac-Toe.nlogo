@@ -18,14 +18,16 @@ to setup
       fd 9
       ; vertical lines
       pu
-      setxy i 0
+      setxy (i - 0.5) 0
       set heading 0
       pd
       fd 9
     ]
     set i i + 1
   ]
-  ask turtle 0 [die]
+  ask turtle 0 [
+    die
+  ]
 end
 
 to play
@@ -46,8 +48,8 @@ GRAPHICS-WINDOW
 1
 1
 0
-0
-0
+1
+1
 1
 0
 8

@@ -12,20 +12,22 @@ to setup
     ask turtle 0 [
       ; horizontal lines
       pu
-      setxy 0 i - 0.5
+      setxy -0.5 (i - 0.5)
       set heading 90
       pd
-      fd 9
-      ; vertical lines
-      pu
-      setxy i 0
-      set heading 0
-      pd
-      fd 9
+      fd
+;      ; vertical lines
+;      pu
+;      setxy i 0
+;      set heading 0
+;      pd
+;      fd 9
     ]
     set i i + 1
   ]
-  ask turtle 0 [die]
+  ask turtle 0 [
+    die
+  ]
 end
 
 to play
@@ -46,8 +48,8 @@ GRAPHICS-WINDOW
 1
 1
 0
-0
-0
+1
+1
 1
 0
 8
