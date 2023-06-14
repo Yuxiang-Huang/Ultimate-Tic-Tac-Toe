@@ -229,26 +229,37 @@ end
 to check [x y]
   ; get my grid
   let myGrid getGrid x y
-  ; check all directions
-  ask turtles with [xcor = x and ycor = y]
+  foreach myGrid
   [
-    set heading 0
-    repeat 4
+    p ->
+    ask p
     [
-      if (checkhelper 1 myGrid) and (checkhelper 2 myGrid)
+      ; check all turtles in this grid
+      if any? turtles-here
       [
-        set winGrid myGrid
+        ask turtles-here
+        [
+          ; check all directions
+          set heading 0
+          repeat 4
+          [
+            if (checkhelper 1 myGrid) and (checkhelper 2 myGrid)
+            [
+              set winGrid myGrid
+            ]
+            set heading heading + 90
+          ]
+          set heading 45
+          repeat 4
+          [
+            if (checkhelper sqrt(2) myGrid) and (checkhelper (2 * sqrt(2)) myGrid)
+            [
+              set winGrid myGrid
+            ]
+            set heading heading + 90
+          ]
+        ]
       ]
-      set heading heading + 90
-    ]
-    set heading 45
-    repeat 4
-    [
-      if (checkhelper sqrt(2) myGrid) and (checkhelper (2 * sqrt(2)) myGrid)
-      [
-        set winGrid myGrid
-      ]
-      set heading heading + 90
     ]
   ]
 
@@ -301,6 +312,7 @@ to finalCheck [cx cy]
   ; announce winner
   if (gameEnded)
   [
+    ; using color to determine text
     ifelse first [color] of turtles with [xcor = cx and ycor = cy] = (item 0 colorList)
     [
       output-print (sentence (item 0 colorNameList) "WON!!!")
@@ -316,9 +328,10 @@ to undo
   ; check for invalid case
   ifelse (moveIndex >= 0)
   [
+
     set numOfTurn numOfTurn - 1
 
-    ; get the move by going b
+    ; get the move by going back in moves list
     let lastMove (item moveIndex moves)
     set moveIndex moveIndex - 1
     let x first lastMove
@@ -355,7 +368,7 @@ to redo
   ; check for invalid case
   ifelse moveIndex < (length moves - 1)
   [
-    ; advance through the list
+    ; advance through the moves list
     set moveIndex moveIndex + 1
     let nextMove (item moveIndex moves)
     spawn (first nextMove) (last nextMove)
@@ -516,6 +529,23 @@ BUTTON
 268
 NIL
 redo
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+41
+288
+119
+321
+Free Play
+ask patches [set pcolor black]
 NIL
 1
 T

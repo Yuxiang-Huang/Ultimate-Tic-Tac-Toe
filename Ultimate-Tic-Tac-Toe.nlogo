@@ -229,26 +229,37 @@ end
 to check [x y]
   ; get my grid
   let myGrid getGrid x y
-  ; check all directions
-  ask turtles with [xcor = x and ycor = y]
+  foreach myGrid
   [
-    set heading 0
-    repeat 4
+    p ->
+    ask p
     [
-      if (checkhelper 1 myGrid) and (checkhelper 2 myGrid)
+      ; check all turtles in this grid
+      if any? turtles-here
       [
-        set winGrid myGrid
+        ask turtles-here
+        [
+          ; check all directions
+          set heading 0
+          repeat 4
+          [
+            if (checkhelper 1 myGrid) and (checkhelper 2 myGrid)
+            [
+              set winGrid myGrid
+            ]
+            set heading heading + 90
+          ]
+          set heading 45
+          repeat 4
+          [
+            if (checkhelper sqrt(2) myGrid) and (checkhelper (2 * sqrt(2)) myGrid)
+            [
+              set winGrid myGrid
+            ]
+            set heading heading + 90
+          ]
+        ]
       ]
-      set heading heading + 90
-    ]
-    set heading 45
-    repeat 4
-    [
-      if (checkhelper sqrt(2) myGrid) and (checkhelper (2 * sqrt(2)) myGrid)
-      [
-        set winGrid myGrid
-      ]
-      set heading heading + 90
     ]
   ]
 
@@ -317,6 +328,8 @@ to undo
   ; check for invalid case
   ifelse (moveIndex >= 0)
   [
+    set gameEnded false
+
     set numOfTurn numOfTurn - 1
 
     ; get the move by going back in moves list
@@ -517,6 +530,23 @@ BUTTON
 268
 NIL
 redo
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+41
+288
+119
+321
+Free Play
+ask patches [set pcolor black]
 NIL
 1
 T
