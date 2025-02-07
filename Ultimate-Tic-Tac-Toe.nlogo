@@ -411,7 +411,7 @@ to-report finalCheckHelper [len]
   if any? turtles-on (patch-ahead len)
   [
     ; check if these 2 turtles are the same size
-    if first [size] of (turtles-on patch-ahead len) = [size] of self
+    if first [size] of (turtles-on patch-ahead len) = sizeScalar * sizeFactor
     [
       ; check if these 2 turtles are the same color
       if first [color] of (turtles-on patch-ahead len) = [color] of self
